@@ -11,8 +11,8 @@ play :-
 
 % initial_state(GameConfig, GameState)
 initial_state(_, [Board, Player, 27, 27, ValidMoves]) :-
-    final_board(Board),
-    final_valid_moves(ValidMoves),
+    initial_board(Board),
+    initial_valid_moves(ValidMoves),
     random_member(Player, ['white', 'black']).
 
 % display_game(GameState)
@@ -22,24 +22,6 @@ display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
     print_board(Board),
     print_player_turn(Player),
     print_valid_moves(ValidMoves).
-
-game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'white') :- 
-    clear_console,
-    print_header(WhiteBlocks, BlackBlocks),
-    print_board(Board),
-    print_winner_message('white'),
-    !.
-game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'black') :-
-    clear_console,
-    print_header(WhiteBlocks, BlackBlocks),
-    print_board(Board),
-    print_winner_message('black'),
-    !.
-game_cycle(GameConfig, [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
-    get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move),
-    move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
-    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
-    game_cycle(GameConfig, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
 % move(GameState, Move, NewGameState)
 move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], NewGameState) :-
@@ -112,9 +94,26 @@ game_over([_, 'white', _, _, []], 'black') :- !.
 game_over([_, 'black', _, _, []], 'white') :- !.
 game_over(_, '') :- !. % TODO
 
-% initial_state(_, GameState), valid_moves(GameState, ListOfMoves).
 % value(GameState, Player, Value)
 % choose_move(GameState, Level, Move)
+
+game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'white') :- 
+    clear_console,
+    print_header(WhiteBlocks, BlackBlocks),
+    print_board(Board),
+    print_winner_message('white'),
+    !.
+game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'black') :-
+    clear_console,
+    print_header(WhiteBlocks, BlackBlocks),
+    print_board(Board),
+    print_winner_message('black'),
+    !.
+game_cycle(GameConfig, [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move),
+    move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(GameConfig, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
 get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move) :-
     (length(ValidMoves, 0) -> Move = [], ! ; 

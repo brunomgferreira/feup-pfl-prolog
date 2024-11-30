@@ -36,17 +36,20 @@ get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move) :-
     get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], CurrentMove, Move, 1)).
 
 get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col], Move, Direction) :-
-    (member([Row, Col], ValidMoves) -> 
+    ValidMove = member([Row, Col], ValidMoves),
+    (ValidMove -> 
         (Player = 'white' -> 
             put_block(Board, Row, Col, 'white_valid', TempBoard, Direction) ;
          Player = 'black' ->
             put_block(Board, Row, Col, 'black_valid', TempBoard, Direction)) ;
-     \+ member([Row, Col], ValidMoves) ->
+     \+ ValidMove ->
         (Player = 'white' -> 
             put_block(Board, Row, Col, 'white_invalid', TempBoard, Direction) ;
          Player = 'black' ->
             put_block(Board, Row, Col, 'black_invalid', TempBoard, Direction))),
     display_game([TempBoard, Player, WhiteBlocks, BlackBlocks, ValidMoves]),
+    (ValidMove -> print_valid_move_message ;
+    \+ ValidMove -> print_invalid_move_message),
     get_code(Code),
     clear_buffer,
     ((Code = 65 ; Code = 97) ->  % A - left
@@ -69,8 +72,11 @@ get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col], 
         (Direction = 1 -> NewDirection = 2 ; Direction = 2 -> NewDirection = 1),
         get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col], Move, NewDirection),
         !
-    ; (Code = 67 ; Code = 99) ->  % C - Confirm
+    ; ((Code = 67 ; Code = 99), ValidMove) ->  % C - Confirm
         Move = [Row, Col],
+        !
+    ; ((Code = 67 ; Code = 99), \+ ValidMove) ->  % C - Confirm
+        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col], Move, Direction),
         !
     ; get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col], Move, Direction)
     ).

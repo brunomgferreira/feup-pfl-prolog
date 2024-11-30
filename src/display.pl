@@ -341,3 +341,17 @@ print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3], [Row4, Col4], [
     nl,
     print_valid_moves_aux(ValidMoves), 
     !.
+
+print_valid_move_message :-
+    left_margin,
+    print_black_valid_square(' '),
+    write_valid('         Valid Move!          '),
+    print_black_valid_square(' '),
+    nl.
+
+print_invalid_move_message :-
+    left_margin,
+    print_black_invalid_square(' '),
+    write_invalid('        Invalid Move!         '),
+    print_black_invalid_square(' '),
+    nl.

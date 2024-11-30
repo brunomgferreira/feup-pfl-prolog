@@ -48,6 +48,16 @@ write_grey(S) :-
     write(S),
     reset_color.
 
+write_white(S) :-
+    set_color_white,
+    write(S),
+    reset_color.
+
+write_black(S) :-
+    set_color_black,
+    write(S),
+    reset_color.
+
 write_valid(S) :-
     set_color_white_valid,
     write(S),

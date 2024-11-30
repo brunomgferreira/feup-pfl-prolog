@@ -13,6 +13,14 @@ print_double_grey_line :-
     write_grey('                                    '),
     nl.
 
+print_white_line :-
+    write_white('                                    '),
+    nl.
+
+print_black_line :-
+    write_black('                                    '),
+    nl.
+
 print_white_square(C) :-
     set_color_white,
     write(' '),
@@ -354,4 +362,38 @@ print_invalid_move_message :-
     print_black_invalid_square(' '),
     write_invalid('        Invalid Move!         '),
     print_black_invalid_square(' '),
+    nl.
+
+print_winner_message('white') :-
+    nl,
+    left_margin,
+    print_white_line,
+    left_margin,
+    print_grey_line,
+    left_margin,
+    print_white_square(' '),
+    write_grey('       White Player Won!      '),
+    print_white_square(' '),
+    nl,
+    left_margin,
+    print_grey_line,
+    left_margin,
+    print_white_line,
+    nl.
+
+print_winner_message('black') :-
+    nl,
+    left_margin,
+    print_black_line,
+    left_margin,
+    print_grey_line,
+    left_margin,
+    print_black_square(' '),
+    write_grey('       Black Player Won!      '),
+    print_black_square(' '),
+    nl,
+    left_margin,
+    print_grey_line,
+    left_margin,
+    print_black_line,
     nl.

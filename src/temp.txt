@@ -1,0 +1,186 @@
+get_move(Board, Player, NewBoard) :-
+    get_move_aux(Board, 0, 0, Player, NewBoard).
+
+get_move_aux(Board, Row, Col, Player, NewBoard) :-
+    clear_console,
+    nl,
+    put_block(Board, Row, Col, Player, TempBoard, 1),
+    print_board(TempBoard),
+    read(C),
+    write('\n'),
+    clear_buffer,
+    (C = 65 ->  % left
+        NewCol is (Col - 1) mod 9,
+        get_move_aux(Board, Row, NewCol, Player, NewBoard)
+    ; C = 68 ->  % right
+        NewCol is (Col + 1) mod 9,
+        get_move_aux(Board, Row, NewCol, Player, NewBoard)
+    ; C = 87 ->  % up
+        NewRow is (Row - 1) mod 9,
+        get_move_aux(Board, NewRow, Col, Player, NewBoard)
+    ; C = 83 ->  % down
+        NewRow is (Row + 1) mod 9,
+        get_move_aux(Board, NewRow, Col, Player, NewBoard)
+    ; C = 10 ->  % enter
+        NewBoard = TempBoard
+    ).
+
+find_valid_move(ValidMoves, ValidMove) :-
+    reverse(ValidMoves, Reversed),
+    find_valid_move_aux(Reversed, 1, ValidMove).
+
+find_valid_move_aux([], _, []).
+find_valid_move_aux([Line | Rest], Row, ValidMove) :-
+    find_valid_move_row(Line, [Row, 1], Move),
+    ( \+length(Move, 0) ->
+        ValidMove = Move
+    ; length(Move, 0) ->
+        NewRow is Row + 1,
+        find_valid_move_aux(Rest, NewRow, ValidMove)).
+
+find_valid_move_row([], _, []).
+find_valid_move_row([Move | Rest], [Row, Col], ValidMove) :-
+    ( Move -> ValidMove = [Row, Col] ; 
+      \+Move ->
+        NewCol is Col + 1,
+        find_valid_move_row(Rest, [Row, NewCol], ValidMove )).
+
+find_left_valid_move(ValidMoves, [Row, Col], ValidMove) :-
+    (Col = 1 -> NewCol = 10 ; NewCol is (Col - 1) mod 10),
+    RowIndex is 10 - Row,
+    ColIndex is NewCol - 1,
+    nth0(RowIndex, ValidMoves, Line),
+    nth0(ColIndex, Line, Move),
+    (Move -> ValidMove = [Row, NewCol], ! ;
+    find_left_valid_move(ValidMoves, [Row, NewCol], ValidMove)).
+
+find_right_valid_move(ValidMoves, [Row, Col], ValidMove) :-
+    NewCol is (Col + 1) mod 10 + 1,
+    RowIndex is 10 - Row,
+    ColIndex is NewCol - 1,
+    nth0(RowIndex, ValidMoves, Line),
+    nth0(ColIndex, Line, Move),
+    (Move -> ValidMove = [Row, NewCol], ! ;
+    find_right_valid_move(ValidMoves, [Row, NewCol], ValidMove)).
+
+find_up_valid_move(ValidMoves, [Row, Col], ValidMove) :-
+    NewRow is (Row + 1) mod 10 + 1,
+    RowIndex is 10 - NewRow,
+    ColIndex is Col - 1,
+    nth0(RowIndex, ValidMoves, Line),
+    nth0(ColIndex, Line, Move),
+    (Move -> ValidMove = [NewRow, Col], ! ;
+    find_up_valid_move(ValidMoves, [NewRow, Col], ValidMove)).
+
+find_down_valid_move(ValidMoves, [Row, Col], ValidMove) :-
+    (Row = 1 -> NewRow = 10 ; NewRow is (Row - 1) mod 10),
+    RowIndex is 10 - NewRow,
+    ColIndex is Col - 1,
+    nth0(RowIndex, ValidMoves, Line),
+    nth0(ColIndex, Line, Move),
+    (Move -> ValidMove = [NewRow, Col], ! ;
+    find_down_valid_move(ValidMoves, [NewRow, Col], ValidMove)).
+
+
+
+
+
+print_board_row([]).
+print_board_row([X | Row]) :-
+    (X = ['empty', Height] -> print_empty_square(Height) ;
+     X = ['white', Height] -> print_white_square(Height) ;
+     X = ['black', Height] -> print_black_square(Height) ;
+     X = ['white_valid', Height] -> print_white_valid_square(Height) ;
+     X = ['black_valid', Height] -> print_black_valid_square(Height) ;
+     X = ['white_invalid', Height] -> print_white_invalid_square(Height) ;
+     X = ['black_invalid', Height] -> print_black_invalid_square(Height)),
+    print_board_row(Row).
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+% --------------------------------------------------------------
+
+% valid_moves(GameState, ListOfMoves)
+valid_moves([Board, _, _, _, _], ListOfMoves) :-
+    valid_moves_aux(Board, Board, 10, [], ReversedListOfMoves),
+    reverse(ReversedListOfMoves, ListOfMoves).
+
+valid_moves_aux(_, [],  _, AccumulatedMoves, ListOfMoves) :- !.
+valid_moves_aux(Board, [Line | Rest], Row, AccumulatedMoves, ListOfMoves) :-
+    valid_moves_row(Board, Line, Row, 1, AccumulatedMoves, NewAccumulatedMoves),
+    NewRow is Row - 1,
+    valid_moves_aux(Board, Rest, NewRow, [], NewListOfMoves),
+    append(NewAccumulatedMoves, NewListOfMoves, ListOfMoves).
+
+valid_moves_row(_, [], _, _, AccumulatedMoves, AccumulatedMoves) :- !.
+valid_moves_row(Board, [[_, Height] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    NewCol is Col + 1,
+    ((Row > 9, Col > 9) -> 
+        valid_moves_row(Board, Line, Row, NewCol, AccumulatedMoves, ListOfMoves), !
+    ;
+        RowIndex is 10 - Row,   % 2-1 2-2
+        ColIndex is Col - 1,    % 1-1 1-2
+        RowIndex2 is RowIndex - 1,
+        ColIndex2 is ColIndex + 1,
+        nth0(RowIndex, Board, Temp),
+        nth0(ColIndex2, Temp, [_, Height2]),    % 1-2
+        nth0(RowIndex2, Board, Temp2),
+        nth0(ColIndex, Temp2, [_, Height3]),    % 2-1
+        nth0(ColIndex2, Temp2, [_, Height4]),   % 2-2
+
+        ((Height =:= 0, Row mod 2 =:= 1, Col mod 2 =:= 1) ->
+            valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
+        ;
+        (Height =:= 1, Height2 =:= 1, Height3 =:= 1, Height4 =:= 1, Row > 1, Row < 9, Col > 1, Col < 9, Row mod 2 =:= 0, Col mod 2 =:= 0) ->
+            valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
+        ;
+        (Height =:= 2, Height2 =:= 2, Height3 =:= 2, Height4 =:= 2, Row > 2, Row < 8, Col > 2, Col < 8, Row mod 2 =:= 1, Col mod 2 =:= 1) ->
+            valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
+        ;
+        (Height =:= 3, Height2 =:= 3, Height3 =:= 3, Height4 =:= 3, Row > 3, Row < 7, Col > 3, Col < 7, Row mod 2 =:= 0, Col mod 2 =:= 0) ->
+            valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
+        ;
+        (Height =:= 4, Height2 =:= 4, Height3 =:= 4, Height4 =:= 4, Row =:= 5, Col =:= 5) ->
+            valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
+        ;
+            valid_moves_row(Board, Line, Row, NewCol, AccumulatedMoves, ListOfMoves), !
+        )
+    ).
+
+% --------------------------------------------------------------
+
+% valid_moves(GameState, ListOfMoves)
+valid_moves([Board, _, _, _, _], ListOfMoves) :-
+    valid_moves_aux(Board, 10, [], ReversedListOfMoves),
+    reverse(ReversedListOfMoves, ListOfMoves).
+
+valid_moves_aux([],  _, AccumulatedMoves, ListOfMoves) :- !.
+valid_moves_aux([Line | Board], Row, AccumulatedMoves, ListOfMoves) :-
+    valid_moves_row(Line, Row, 1, AccumulatedMoves, NewAccumulatedMoves),
+    NewRow is Row - 1,
+    valid_moves_aux(Board, NewRow, [], NewListOfMoves),
+    append(NewAccumulatedMoves, NewListOfMoves, ListOfMoves).
+
+valid_moves_row([], _, _, AccumulatedMoves, AccumulatedMoves) :- !.
+valid_moves_row([[_, Height] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    NewCol is Col + 1,
+    ((Height =:= 0, Row mod 2 =:= 1, Col mod 2 =:= 1) ->
+        valid_moves_row(Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves)
+    ;
+    (Height =:= 1, Row > 1, Row < 9, Col > 1, Col < 9, Row mod 2 =:= 0, Col mod 2 =:= 0) ->
+        valid_moves_row(Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves)
+    ;
+        valid_moves_row(Line, Row, NewCol, AccumulatedMoves, ListOfMoves)
+    ).

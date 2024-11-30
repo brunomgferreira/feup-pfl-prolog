@@ -19,7 +19,7 @@ initial_state(_, [Board, Player, 27, 27, ValidMoves]) :-
 % display_game(GameState)
 display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
     clear_console,
-    print_number_blocks(WhiteBlocks, BlackBlocks),
+    print_header(WhiteBlocks, BlackBlocks),
     print_board(Board),
     print_player_turn(Player),
     print_valid_moves(ValidMoves).

@@ -8,6 +8,11 @@ print_grey_line :-
     write_grey('                                    '),
     nl.
 
+print_double_grey_line :-
+    write_grey('                                    '),
+    write_grey('                                    '),
+    nl.
+
 print_white_square(C) :-
     set_color_white,
     write(' '),
@@ -57,12 +62,15 @@ print_empty_square(C) :-
     write(' '),
     reset_color.
 
+left_margin :- write('                  ').
+
 % ---------------------------------------------
 % ---------------- Board ----------------------
 % ---------------------------------------------
 
 print_board(Board) :-
     nl,
+    left_margin,
     print_empty_square(' '),
     set_color_white,
     write('                              '),
@@ -71,6 +79,7 @@ print_board(Board) :-
     reset_color,
     nl,
     print_board_aux(Board, 0),
+    left_margin,
     print_empty_square(' '),
     set_color_white,
     write(' 1  2  3  4  5  6  7  8  9  0 '),
@@ -81,6 +90,7 @@ print_board(Board) :-
 
 print_board_aux([], _).
 print_board_aux([Row | Board], 0) :-
+    left_margin,
     print_black_square(0),
     print_board_row(Row),
     print_black_square(' '),
@@ -88,6 +98,7 @@ print_board_aux([Row | Board], 0) :-
     print_board_aux(Board, 9),
     !.
 print_board_aux([Row | Board], RowIndex) :-
+    left_margin,
     print_black_square(RowIndex),
     print_board_row(Row),
     print_black_square(' '),
@@ -111,12 +122,14 @@ print_board_row([['black_invalid', Height] | Row]) :- print_black_invalid_square
 
 print_player_turn('white') :-
     nl,
+    left_margin,
     print_white_square(' '),
     write_grey('      White Player Turn!      '),
     print_white_square(' '),
     nl. 
 print_player_turn('black') :-
     nl,
+    left_margin,
     print_black_square(' '),
     write_grey('      Black Player Turn!      '),
     print_black_square(' '),
@@ -126,12 +139,13 @@ print_player_turn('black') :-
 % ------------- Number Blocks -----------------
 % ---------------------------------------------
 
-print_number_blocks(WhiteBlocks, BlackBlocks) :-
+print_header(WhiteBlocks, BlackBlocks) :-
     nl,
-    print_grey_line,
+    print_double_grey_line,
     write_grey('     --     Blocks  Left     --     '),
+    write_grey('     --       Controls       --     '),
     nl,
-    print_grey_line,
+    print_double_grey_line,
     print_empty_square(' '),
     print_black_square(' '),
     print_white_square(' '),
@@ -148,7 +162,7 @@ print_number_blocks(WhiteBlocks, BlackBlocks) :-
     print_white_square(' '),
     print_black_square(' '),
     print_empty_square(' '),
-    nl,
+    print_grey_line,
     print_empty_square(' '),
     print_black_square(' '),
     print_white_square(' '),
@@ -163,8 +177,9 @@ print_number_blocks(WhiteBlocks, BlackBlocks) :-
     print_white_square(' '),
     print_black_square(' '),
     print_empty_square(' '),
+    write_grey('    Move       Rotate     Confirm   '),
     nl,
-    print_grey_line,
+    print_double_grey_line,
     print_empty_square(' '),
     print_black_square(' '),
     print_black_square(' '),
@@ -181,6 +196,19 @@ print_number_blocks(WhiteBlocks, BlackBlocks) :-
     print_white_square(' '),
     print_white_square(' '),
     print_empty_square(' '),
+        % '     --       Controls       --     '
+    % '    Move       Rotate     Confirm   '
+    % '                                    '
+    % '     !W!        !R!         !C!     '
+    % '  !A!!S!!D!                         '
+    % 'AWSDRC'
+    write_grey('     '),
+    print_white_square('W'),
+    write_grey('        '),
+    print_white_square('R'),
+    write_grey('         '),
+    print_white_square('C'),
+    write_grey('     '),
     nl,
     print_empty_square(' '),
     print_white_square(' '),
@@ -196,25 +224,35 @@ print_number_blocks(WhiteBlocks, BlackBlocks) :-
     print_black_square(' '),
     print_black_square(' '),
     print_empty_square(' '),
+    write_grey('  '),
+    print_white_square('A'),
+    print_black_square('S'),
+    print_white_square('D'),
+    write_grey('                         '),
     nl,
-    print_grey_line.
+    print_double_grey_line.
 
 % ---------------------------------------------
 % ------------- Valid Moves -------------------
 % ---------------------------------------------
 
 print_valid_moves(ValidMoves) :-
+    left_margin,
     print_grey_line,
+    left_margin,
     write_grey('     --     Valid  Moves     --     '),
     nl,
+    left_margin,
     print_grey_line,
     print_valid_moves_aux(ValidMoves).
 
 
 print_valid_moves_aux([]) :-
+    left_margin,
     print_grey_line,
     !.
 print_valid_moves_aux([[Row1, Col1]]) :-
+    left_margin,
     write_grey('    '),
     write_grey(Row1),
     write_grey('-'),
@@ -224,6 +262,7 @@ print_valid_moves_aux([[Row1, Col1]]) :-
     print_valid_moves_aux([]),
     !.
 print_valid_moves_aux([[Row1, Col1], [Row2, Col2]]) :-
+    left_margin,
     write_grey('    '),
     write_grey(Row1),
     write_grey('-'),
@@ -237,6 +276,7 @@ print_valid_moves_aux([[Row1, Col1], [Row2, Col2]]) :-
     print_valid_moves_aux([]),
     !.
 print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3]]) :-
+    left_margin,
     write_grey('    '),
     write_grey(Row1),
     write_grey('-'),
@@ -254,6 +294,7 @@ print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3]]) :-
     print_valid_moves_aux([]),
     !.
 print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3], [Row4, Col4]]) :-
+    left_margin,
     write_grey('    '),
     write_grey(Row1),
     write_grey('-'),
@@ -275,6 +316,7 @@ print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3], [Row4, Col4]]) 
     print_valid_moves_aux([]),
     !.
 print_valid_moves_aux([[Row1, Col1], [Row2, Col2], [Row3, Col3], [Row4, Col4], [Row5, Col5] | ValidMoves]) :-
+    left_margin,
     write_grey('    '),
     write_grey(Row1),
     write_grey('-'),

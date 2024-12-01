@@ -11,6 +11,46 @@ initial_board(
     [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
     [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ]]).
 
+white_winner_board(
+    [
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['white', 1], ['black', 1], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['black', 1], ['white', 1], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ]]).
+
+white_winner_board2(
+    [
+    [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['white', 0], ['white', 0], ['white', 0], ['white', 0], ['white', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['white', 1], ['black', 1], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['black', 1], ['white', 1], ['empty', 0], ['white', 0], ['white', 0], ['empty', 0] ],
+    [ ['white', 0], ['white', 0], ['white', 0], ['empty', 0], ['white', 0], ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0] ],
+    [ ['white', 0], ['white', 0], ['white', 0], ['white', 0], ['white', 0], ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0] ],
+    [ ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0] ],
+    [ ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0] ]]).
+
+black_winner_board(
+    [
+    [ ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['white', 1], ['black', 1], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['black', 1], ['white', 1], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['empty', 0], ['empty', 0], ['white', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0], ['empty', 0] ],
+    [ ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0], ['black', 0] ]]).
+
+
 final_board(
     [
     [ ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1], ['empty', 1] ],

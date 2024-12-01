@@ -1,4 +1,5 @@
 :- use_module(library(lists)).
+:- use_module(library(between)).
 :- use_module(library(random)).
 :- consult(board).
 :- consult(utils).
@@ -7,7 +8,7 @@
 % play
 play :-
     initial_state('TODO - GameConfig', GameState),
-    game_cycle('TODO - GameConfig', GameState, '').
+    game_cycle('TODO - GameConfig', GameState, 'none').
 
 % initial_state(GameConfig, GameState)
 initial_state(_, [Board, Player, 27, 27, ValidMoves]) :-
@@ -32,7 +33,7 @@ move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Directio
         valid_moves([NewBoard, 'black', NewWhiteBlocks, BlackBlocks, []], NewValidMoves),
         NewGameState = [NewBoard, 'black', NewWhiteBlocks, BlackBlocks, NewValidMoves] ;
      \+ ValidMove ->
-        NewGameState is [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves]).
+        NewGameState = [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves]).
 move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], NewGameState) :-
     ValidMove = member([Row, Col], ValidMoves),
     (ValidMove ->
@@ -41,7 +42,7 @@ move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Directio
         valid_moves([NewBoard, 'white', WhiteBlocks, NewBlackBlocks, []], NewValidMoves),
         NewGameState = [NewBoard, 'white', WhiteBlocks, NewBlackBlocks, NewValidMoves] ;
      \+ ValidMove ->
-        NewGameState is [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves]).
+        NewGameState = [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves]).
 
 % valid_moves(GameState, ListOfMoves)
 valid_moves([Board, _, _, _, _], ListOfMoves) :-
@@ -90,9 +91,54 @@ valid_moves_row(Board, [[_, Height] | Line], Row, Col, AccumulatedMoves, ListOfM
     ).
 
 % game_over(GameState, Winner)
-game_over([_, 'white', _, _, []], 'black') :- !.
-game_over([_, 'black', _, _, []], 'white') :- !.
-game_over(_, '') :- !. % TODO
+game_over([Board, _, _, _, _], 'white') :-
+    find_path(Board, 'white', true),
+    !.
+game_over([Board, _, _, _, _], 'black') :-
+    find_path(Board, 'black', true),
+    !.
+game_over([_, _, 0, _, _], 'black') :- !.
+game_over([_, _, _, 0, _], 'white') :- !.
+game_over(_, 'none').
+
+find_path(Board, 'white', true) :-
+    between(0, 9, Start),  % Check from positions 0 to 9
+    find_path_aux(Board, 0, Start, [], 'white', true, true), !.
+find_path(Board, 'black', true) :-
+    between(0, 9, Start),  % Check from positions 0 to 9
+    write(Start),
+    nl,
+    find_path_aux(Board, Start, 0, [], 'black', true, true), !.
+find_path(_, _, false).
+
+find_path_aux(Board, 9, Col, _, 'white', true, true) :-
+    nth0(9, Board, Line),
+    nth0(Col, Line, ['white', _]),
+    !.
+find_path_aux(Board, Row, 9, _, 'black', true, true) :-
+    nth0(Row, Board, Line),
+    nth0(9, Line, ['black', _]),
+    !.
+find_path_aux(_, _, _, _, _, false, _) :- fail.
+find_path_aux(Board, Row, Col, Visited, Player, true, PathFound) :-
+    Row > -1, Row < 10,
+    Col > -1, Col < 10,
+    \+ member([Row, Col], Visited),
+    NewVisited = [[Row, Col] | Visited],
+    nth0(Row, Board, Line),
+    nth0(Col, Line, [Color, _]),
+    (Color = Player -> 
+        NewFound = true
+    ;Color \= Player -> 
+        NewFound = false),
+    Row1 is Row - 1,
+    Row2 is Row + 1,
+    Col1 is Col - 1,
+    Col2 is Col + 1,
+    (find_path_aux(Board, Row, Col1, NewVisited, Player, NewFound, PathFound) ;
+     find_path_aux(Board, Row, Col2, NewVisited, Player, NewFound, PathFound) ;
+     find_path_aux(Board, Row1, Col, NewVisited, Player, NewFound, PathFound) ;
+     find_path_aux(Board, Row2, Col, NewVisited, Player, NewFound, PathFound)).
 
 % value(GameState, Player, Value)
 % choose_move(GameState, Level, Move)

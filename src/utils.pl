@@ -4,6 +4,14 @@ replace(Index, Element, List, Result) :-
   nth0(Index, List, _, R),
   nth0(Index, Result, Element, R).
 
+get_line(Result, Acc):-
+    get_char(Char),
+    Char \= '\n',
+    append(Acc, [Char], Acc1),
+    get_line(Result, Acc1), !.
+get_line(Result, Acc):-
+    atom_chars(Result, Acc), !.
+
 clear_buffer:-
     repeat,
     get_char(C),

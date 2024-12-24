@@ -26,23 +26,20 @@ display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
 
 % move(GameState, Move, NewGameState)
 move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], NewGameState) :-
-    ValidMove = member([Row, Col], ValidMoves),
-    (ValidMove ->
-        put_block(Board, Row, Col, 'white', NewBoard, Direction),
-        NewWhiteBlocks is WhiteBlocks - 1,
-        valid_moves([NewBoard, 'black', NewWhiteBlocks, BlackBlocks, []], NewValidMoves),
-        NewGameState = [NewBoard, 'black', NewWhiteBlocks, BlackBlocks, NewValidMoves] ;
-     \+ ValidMove ->
-        NewGameState = [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves]).
+    member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'white', NewBoard, Direction),
+    NewWhiteBlocks is WhiteBlocks - 1,
+    valid_moves([NewBoard, 'black', NewWhiteBlocks, BlackBlocks, []], NewValidMoves),
+    NewGameState = [NewBoard, 'black', NewWhiteBlocks, BlackBlocks, NewValidMoves],
+    !.
 move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], NewGameState) :-
-    ValidMove = member([Row, Col], ValidMoves),
-    (ValidMove ->
-        put_block(Board, Row, Col, 'black', NewBoard, Direction),
-        NewBlackBlocks is BlackBlocks - 1,
-        valid_moves([NewBoard, 'white', WhiteBlocks, NewBlackBlocks, []], NewValidMoves),
-        NewGameState = [NewBoard, 'white', WhiteBlocks, NewBlackBlocks, NewValidMoves] ;
-     \+ ValidMove ->
-        NewGameState = [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves]).
+    member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'black', NewBoard, Direction),
+    NewBlackBlocks is BlackBlocks - 1,
+    valid_moves([NewBoard, 'white', WhiteBlocks, NewBlackBlocks, []], NewValidMoves),
+    NewGameState = [NewBoard, 'white', WhiteBlocks, NewBlackBlocks, NewValidMoves],
+    !.
+move(GameState, _, GameState) :- !.
 
 % valid_moves(GameState, ListOfMoves)
 valid_moves([Board, _, _, _, _], ListOfMoves) :-
@@ -59,7 +56,14 @@ valid_moves_aux(Board, [Line | Rest], Row, AccumulatedMoves, ListOfMoves) :-
 valid_moves_row(_, [], _, _, AccumulatedMoves, AccumulatedMoves) :- !.
 valid_moves_row(_, _, 10, _, AccumulatedMoves, AccumulatedMoves) :- !.
 valid_moves_row(_, _, _, 10, AccumulatedMoves, AccumulatedMoves) :- !.
-valid_moves_row(Board, [[_, Height] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+valid_moves_row(Board, [[_, 0] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    Row < 10,
+    Col < 10,
+    NewCol is Col + 1,
+    Row mod 2 =:= 1,
+    Col mod 2 =:= 1,
+    valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves).
+valid_moves_row(Board, [[_, 1] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
     Row < 10,
     Col < 10,
     NewCol is Col + 1,
@@ -72,23 +76,86 @@ valid_moves_row(Board, [[_, Height] | Line], Row, Col, AccumulatedMoves, ListOfM
     nth0(RowIndex2, Board, Temp2),
     nth0(ColIndex, Temp2, [_, Height3]),
     nth0(ColIndex2, Temp2, [_, Height4]),
-    ((Height =:= 0, Row mod 2 =:= 1, Col mod 2 =:= 1) ->
-        valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves)
-    ;
-    (Height =:= 1, Height2 =:= 1, Height3 =:= 1, Height4 =:= 1, Row > 1, Row < 9, Col > 1, Col < 9, Row mod 2 =:= 0, Col mod 2 =:= 0) ->
-        valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
-    ;
-    (Height =:= 2, Height2 =:= 2, Height3 =:= 2, Height4 =:= 2, Row > 2, Row < 8, Col > 2, Col < 8, Row mod 2 =:= 1, Col mod 2 =:= 1) ->
-        valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
-    ;
-    (Height =:= 3, Height2 =:= 3, Height3 =:= 3, Height4 =:= 3, Row > 3, Row < 7, Col > 3, Col < 7, Row mod 2 =:= 0, Col mod 2 =:= 0) ->
-        valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
-    ;
-    (Height =:= 4, Height2 =:= 4, Height3 =:= 4, Height4 =:= 4, Row =:= 5, Col =:= 5) ->
-        valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves), !
-    ;
-        valid_moves_row(Board, Line, Row, NewCol, AccumulatedMoves, ListOfMoves), !
-    ).
+    Height2 =:= 1,
+    Height3 =:= 1,
+    Height4 =:= 1,
+    Row > 1, 
+    Row < 9, 
+    Col > 1, 
+    Col < 9, 
+    Row mod 2 =:= 0, 
+    Col mod 2 =:= 0,
+    valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves).
+valid_moves_row(Board, [[_, 2] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    Row < 10,
+    Col < 10,
+    NewCol is Col + 1,
+    RowIndex is 10 - Row,
+    ColIndex is Col - 1,
+    RowIndex2 is RowIndex - 1,
+    ColIndex2 is ColIndex + 1,
+    nth0(RowIndex, Board, Temp),
+    nth0(ColIndex2, Temp, [_, Height2]),
+    nth0(RowIndex2, Board, Temp2),
+    nth0(ColIndex, Temp2, [_, Height3]),
+    nth0(ColIndex2, Temp2, [_, Height4]),
+    Height2 =:= 2,
+    Height3 =:= 2,
+    Height4 =:= 2,
+    Row > 2, 
+    Row < 8, 
+    Col > 2, 
+    Col < 8, 
+    Row mod 2 =:= 1, 
+    Col mod 2 =:= 1,
+    valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves).
+valid_moves_row(Board, [[_, 3] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    Row < 10,
+    Col < 10,
+    NewCol is Col + 1,
+    RowIndex is 10 - Row,
+    ColIndex is Col - 1,
+    RowIndex2 is RowIndex - 1,
+    ColIndex2 is ColIndex + 1,
+    nth0(RowIndex, Board, Temp),
+    nth0(ColIndex2, Temp, [_, Height2]),
+    nth0(RowIndex2, Board, Temp2),
+    nth0(ColIndex, Temp2, [_, Height3]),
+    nth0(ColIndex2, Temp2, [_, Height4]),
+    Height2 =:= 3,
+    Height3 =:= 3,
+    Height4 =:= 3,
+    Row > 3,
+    Row < 7,
+    Col > 3,
+    Col < 7,
+    Row mod 2 =:= 0,
+    Col mod 2 =:= 0,
+    valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves).
+valid_moves_row(Board, [[_, 4] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    Row < 10,
+    Col < 10,
+    NewCol is Col + 1,
+    RowIndex is 10 - Row,
+    ColIndex is Col - 1,
+    RowIndex2 is RowIndex - 1,
+    ColIndex2 is ColIndex + 1,
+    nth0(RowIndex, Board, Temp),
+    nth0(ColIndex2, Temp, [_, Height2]),
+    nth0(RowIndex2, Board, Temp2),
+    nth0(ColIndex, Temp2, [_, Height3]),
+    nth0(ColIndex2, Temp2, [_, Height4]),
+    Height2 =:= 4,
+    Height3 =:= 4,
+    Height4 =:= 4,
+    Row =:= 5,
+    Col =:= 5,
+    valid_moves_row(Board, Line, Row, NewCol, [[Row, Col] | AccumulatedMoves], ListOfMoves).
+valid_moves_row(Board, [[_, _] | Line], Row, Col, AccumulatedMoves, ListOfMoves) :-
+    Row < 10,
+    Col < 10,
+    NewCol is Col + 1,
+    valid_moves_row(Board, Line, Row, NewCol, AccumulatedMoves, ListOfMoves).
 
 % game_over(GameState, Winner)
 game_over([Board, _, _, _, _], 'white') :-
@@ -121,24 +188,61 @@ find_path_aux(Board, Row, 9, _, 'black', true, true) :-
     !.
 find_path_aux(_, _, _, _, _, false, _) :- fail.
 find_path_aux(Board, Row, Col, Visited, Player, true, PathFound) :-
+    % Check bounds
     Row > -1, Row < 10,
     Col > -1, Col < 10,
+
+    % Check if the current cell has been visited
     \+ member([Row, Col], Visited),
+
+    % Mark the current cell as visited
     NewVisited = [[Row, Col] | Visited],
+
+    % Get the color of the current cell
     nth0(Row, Board, Line),
-    nth0(Col, Line, [Color, _]),
-    (Color = Player -> 
-        NewFound = true
-    ;Color \= Player -> 
-        NewFound = false),
+    nth0(Col, Line, [Player, _]),
+
+    % Calculate neighboring cells
     Row1 is Row - 1,
     Row2 is Row + 1,
     Col1 is Col - 1,
     Col2 is Col + 1,
-    (find_path_aux(Board, Row, Col1, NewVisited, Player, NewFound, PathFound) ;
-     find_path_aux(Board, Row, Col2, NewVisited, Player, NewFound, PathFound) ;
-     find_path_aux(Board, Row1, Col, NewVisited, Player, NewFound, PathFound) ;
-     find_path_aux(Board, Row2, Col, NewVisited, Player, NewFound, PathFound)).
+
+    % Explore the four neighboring cells
+    (find_path_aux(Board, Row, Col1, NewVisited, Player, true, PathFound) ;
+     find_path_aux(Board, Row, Col2, NewVisited, Player, true, PathFound) ;
+     find_path_aux(Board, Row1, Col, NewVisited, Player, true, PathFound) ;
+     find_path_aux(Board, Row2, Col, NewVisited, Player, true, PathFound)).
+
+find_path_aux(Board, Row, Col, Visited, Player, true, PathFound) :-
+    % Check bounds
+    Row > -1, Row < 10,
+    Col > -1, Col < 10,
+
+    % Check if the current cell has been visited
+    \+ member([Row, Col], Visited),
+
+    % Mark the current cell as visited
+    NewVisited = [[Row, Col] | Visited],
+
+    % Get the color of the current cell
+    nth0(Row, Board, Line),
+    nth0(Col, Line, [Color, _]),
+
+    % Check if the color is different from the player
+    Color \= Player,
+
+    % Calculate neighboring cells
+    Row1 is Row - 1,
+    Row2 is Row + 1,
+    Col1 is Col - 1,
+    Col2 is Col + 1,
+
+    % Explore the four neighboring cells
+    (find_path_aux(Board, Row, Col1, NewVisited, Player, false, PathFound) ;
+     find_path_aux(Board, Row, Col2, NewVisited, Player, false, PathFound) ;
+     find_path_aux(Board, Row1, Col, NewVisited, Player, false, PathFound) ;
+     find_path_aux(Board, Row2, Col, NewVisited, Player, false, PathFound)).
 
 % value(GameState, Player, Value)
 % choose_move(GameState, Level, Move)
@@ -161,53 +265,115 @@ game_cycle(GameConfig, [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _)
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
     game_cycle(GameConfig, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
+get_move([_, _, _, _, []], []) :- !.
 get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move) :-
-    (length(ValidMoves, 0) -> Move = [], ! ; 
     nth0(0, ValidMoves, [Row, Col]),
-    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], Move)).
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], Move).
 
-get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move) :-
-    ValidMove = member([Row, Col], ValidMoves),
-    (ValidMove -> 
-        (Player = 'white' -> 
-            put_block(Board, Row, Col, 'white_valid', TempBoard, Direction) ;
-         Player = 'black' ->
-            put_block(Board, Row, Col, 'black_valid', TempBoard, Direction)) ;
-     \+ ValidMove ->
-        (Player = 'white' -> 
-            put_block(Board, Row, Col, 'white_invalid', TempBoard, Direction) ;
-         Player = 'black' ->
-            put_block(Board, Row, Col, 'black_invalid', TempBoard, Direction))),
-    display_game([TempBoard, Player, WhiteBlocks, BlackBlocks, ValidMoves]),
-    (ValidMove -> print_valid_move_message ;
-    \+ ValidMove -> print_invalid_move_message),
-    get_code(Code),
-    clear_buffer,
-    ((Code = 65 ; Code = 97) ->  % A - left
-        (Col = 1 -> NewCol = 9 ; NewCol is (Col - 1) mod 10),
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move),
-        !
-    ; (Code = 68 ; Code = 100) ->  % D - right
-        (Col = 9 -> NewCol = 1 ; NewCol is (Col + 1) mod 10),
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move),
-        !
-    ; (Code = 87 ; Code = 119) ->  % W - up
-        (Row = 9 -> NewRow = 1 ; NewRow is (Row + 1) mod 10),
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move),
-        !
-    ; (Code = 83 ; Code = 115) ->  % S - down
-        (Row = 1 -> NewRow = 9 ; NewRow is (Row - 1) mod 10),
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move),
-        !
-    ; (Code = 82 ; Code = 114) ->  % R - Rotate
-        (Direction = 1 -> NewDirection = 2 ; Direction = 2 -> NewDirection = 1),
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, NewDirection], Move),
-        !
-    ; ((Code = 67 ; Code = 99), ValidMove) ->  % C - Confirm
-        Move = [Row, Col, Direction],
-        !
-    ; ((Code = 67 ; Code = 99), \+ ValidMove) ->  % C - Confirm
-        get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move),
-        !
-    ; get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move)
-    ).
+get_move_aux([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move) :-
+    member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'white_valid', TempBoard, Direction),
+    display_game([TempBoard, 'white', WhiteBlocks, BlackBlocks, ValidMoves]),
+    print_valid_move_message,
+    get_line(Code, []),
+    move_logic([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, true, Move), !.
+get_move_aux([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move) :-
+    member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'black_valid', TempBoard, Direction),
+    display_game([TempBoard, 'black', WhiteBlocks, BlackBlocks, ValidMoves]),
+    print_valid_move_message,
+    get_line(Code, []),
+    move_logic([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, true, Move), !.
+get_move_aux([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move) :-
+    \+ member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'white_invalid', TempBoard, Direction),
+    display_game([TempBoard, 'white', WhiteBlocks, BlackBlocks, ValidMoves]),
+    print_invalid_move_message,
+    get_line(Code, []),
+    move_logic([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, false, Move), !.
+get_move_aux([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move) :-
+    \+ member([Row, Col], ValidMoves),
+    put_block(Board, Row, Col, 'black_invalid', TempBoard, Direction),
+    display_game([TempBoard, 'black', WhiteBlocks, BlackBlocks, ValidMoves]),
+    print_invalid_move_message,
+    get_line(Code, []),
+    move_logic([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, false, Move), !.
+
+% move_logic(GameState, CurrentMove, Code, ValidMove, Move)
+% A - left
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 1, Direction], 'a', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 9, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 1, Direction], 'A', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 9, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'a', _, Move) :-
+    Col \= 1,
+    NewCol is (Col - 1) mod 10, 
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'A', _, Move) :-
+    Col \= 1,
+    NewCol is (Col - 1) mod 10, 
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move), !.
+
+% D - right
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 9, Direction], 'd', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 1, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 9, Direction], 'D', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, 1, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'd', _, Move) :-
+    Col \= 9,
+    NewCol is (Col + 1) mod 10, 
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'D', _, Move) :-
+    Col \= 9,
+    NewCol is (Col + 1) mod 10, 
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, NewCol, Direction], Move), !.
+
+% W - up
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [9, Col, Direction], 'w', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [1, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [9, Col, Direction], 'W', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [1, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'w', _, Move) :-
+    Row \= 9,
+    NewRow is (Row + 1) mod 10,
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'W', _, Move) :-
+    Row \= 9,
+    NewRow is (Row + 1) mod 10,
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move), !.
+
+% S - down
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [1, Col, Direction], 's', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [9, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [1, Col, Direction], 'S', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [9, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 's', _, Move) :-
+    Row \= 1,
+    NewRow is (Row - 1) mod 10,
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'S', _, Move) :-
+    Row \= 1,
+    NewRow is (Row - 1) mod 10,
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, Col, Direction], Move), !.
+
+% R - Rotate
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], 'r', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 2], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], 'R', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 2], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 2], 'r', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 2], 'R', _, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, 1], Move), !.
+
+% C - Confirm
+move_logic(_, Move, 'c', true, Move) :- !.
+move_logic(_, Move, 'C', true, Move) :- !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'c', false, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move), !.
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'C', false, Move) :-
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move), !.
+
+% Else
+move_logic(GameState, CurrentMove, _, _, Move) :-
+    get_move_aux(GameState, CurrentMove, Move), !.

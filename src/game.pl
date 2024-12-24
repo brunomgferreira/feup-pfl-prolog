@@ -18,7 +18,7 @@ initial_state(_, [Board, Player, 27, 27, ValidMoves]) :-
 
 % display_game(GameState)
 display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
-    clear_console,
+    % clear_console,
     print_header(WhiteBlocks, BlackBlocks),
     print_board(Board),
     print_player_turn(Player),
@@ -374,6 +374,28 @@ move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Dir
 move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], 'C', false, Move) :-
     get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move), !.
 
+% Specific Coordinates
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, _, Move) :-
+    parse_move_code(Code, NewCol, NewRow),
+    NewCol < 10,
+    NewRow < 10,
+    get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [NewRow, NewCol, Direction], Move), !.
+
 % Else
 move_logic(GameState, CurrentMove, _, _, Move) :-
     get_move_aux(GameState, CurrentMove, Move), !.
+
+parse_move_code(Code, NewCol, NewRow) :-
+    atom_length(Code, 3),       % Check if length is 3
+    sub_atom(Code, 1, 1, 1, '-'),  % Ensure the middle character is a hyphen ('-')
+    
+    % Extract the first (column) and third (row) characters
+    sub_atom(Code, 0, 1, _, ColStr),  % First character (column)
+    sub_atom(Code, 2, 1, _, RowStr),  % Third character (row)
+
+    % Convert the extracted characters into numbers
+    atom_chars(ColStr, [ColChar]),  % Convert atom to list of characters
+    number_chars(NewCol, [ColChar]),  % Convert list of characters to number
+    
+    atom_chars(RowStr, [RowChar]),  % Convert atom to list of characters
+    number_chars(NewRow, [RowChar]). % Convert list of characters to number

@@ -4,6 +4,7 @@
 :- consult(board).
 :- consult(utils).
 :- consult(display).
+:- consult(value).
 
 game(Mode,Size):-
     initial_state('TODO - GameConfig', GameState),
@@ -172,8 +173,6 @@ find_path(Board, 'white', true) :-
     find_path_aux(Board, 0, Start, [], 'white', true, true), !.
 find_path(Board, 'black', true) :-
     between(0, 9, Start),  % Check from positions 0 to 9
-    write(Start),
-    nl,
     find_path_aux(Board, Start, 0, [], 'black', true, true), !.
 find_path(_, _, false).
 
@@ -244,6 +243,18 @@ find_path_aux(Board, Row, Col, Visited, Player, true, PathFound) :-
      find_path_aux(Board, Row2, Col, NewVisited, Player, false, PathFound)).
 
 % value(GameState, Player, Value)
+% If value < 0 the player is losing
+% If value == 0 the player is drawing
+% If value > 0 the player is winning
+value([Board, _, _, _, _], 'white', Value) :-
+    get_value(Board, 'white', WhiteValue),
+    get_value(Board, 'black', BlackValue),
+    Value is WhiteValue - BlackValue.
+value([Board, _, _, _, _], 'black', Value) :-
+    get_value(Board, 'white', WhiteValue),
+    get_value(Board, 'black', BlackValue),
+    Value is BlackValue - WhiteValue.
+
 % choose_move(GameState, Level, Move)
 
 game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'white') :- 
@@ -374,7 +385,7 @@ move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Dir
     get_move_aux([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Move), !.
 
 % Specific Coordinates
-move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], Code, _, Move) :-
+move_logic([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], [_, _, Direction], Code, _, Move) :-
     parse_move_code(Code, NewCol, NewRow),
     NewCol < 10,
     NewRow < 10,

@@ -4,6 +4,11 @@ replace(Index, Element, List, Result) :-
   nth0(Index, List, _, R),
   nth0(Index, Result, Element, R).
 
+max_list([X], X).
+max_list([X, Y | Rest], Max) :-
+    max_list([Y | Rest], MaxRest),
+    Max is max(X, MaxRest).
+
 get_line(Result, Acc):-
     get_char(Char),
     Char \= '\n',

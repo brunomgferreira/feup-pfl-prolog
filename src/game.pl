@@ -5,8 +5,7 @@
 :- consult(utils).
 :- consult(display).
 
-% play
-play :-
+game(Mode,Size):-
     initial_state('TODO - GameConfig', GameState),
     game_cycle('TODO - GameConfig', GameState, 'none').
 

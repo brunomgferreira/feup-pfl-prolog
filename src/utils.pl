@@ -75,3 +75,30 @@ write_invalid(S) :-
     set_color_white_invalid,
     write(S),
     reset_color.
+
+read_specific_char(Value):-
+    get_char(Char),
+    Value == Char, !.
+
+read_specific_char(_):-
+    skip_line,
+    write('Invalid input!\n'), fail.
+    
+% Reads a digit between Min and Max
+read_digit_between(Min, Max, Value):-
+    read_digit(X),
+    between(Min, Max, X),!,
+    Value is X.
+
+read_digit_between(_, _, _):-
+    skip_line, 
+    write('Invalid input!\n'), fail.    
+
+read_digit(_):-
+    peek_code(Value),
+    \+between(48, 57, Value), !, fail.
+
+read_digit(Value):-
+    get_code(Ascii),
+    char_code('0', AsciiZero),
+    Value is Ascii - AsciiZero.

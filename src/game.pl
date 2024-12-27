@@ -6,21 +6,45 @@
 :- consult(utils).
 :- consult(display).
 :- consult(value).
+:- consult(app).
 
-game(Mode,Size):-
+% Use current_directory(_, 'your_path_here') to set the path to the menus folder, so assets can be loaded
+play:-
+    main.
+
+game(GameConfig,Size):-
     initial_state(GameConfig, GameState),
-    game_cycle(GameConfig, GameState, 'none').
+    game_cycle(GameConfig, GameState, 'none'),
+    write('Current Mode'),write(GameConfig), nl,
+    write('Current Size'),write(Size), nl.
 
 /*
 GameConfig = [GameMode, GameDifficulty]
-GameMode => ['player-player', 'player-computer', 'computer-computer']
+GameMode => ['player-player', 'player-computer', 'computer-computer', 'computer-player']
 GameDifficulty => [1, 2]
 */
-% initial_state(GameConfig, GameState)
-initial_state(['player-computer', 2], [Board, Player, 27, 27, ValidMoves]) :-
+initial_state(['player-player', 0], [Board, Player, 27, 27, ValidMoves]) :-
     initial_board(Board),
     initial_valid_moves(ValidMoves),
-    random_member(Player, ['white', 'black']).
+    Player = 'white'.
+
+initial_state(['player-computer', GameDifficulty], [Board, Player, 27, 27, ValidMoves]) :-
+    initial_board(Board),
+    initial_valid_moves(ValidMoves),
+    Player = 'white'.
+    
+initial_state(['computer-player', GameDifficulty], [Board, Player, 27, 27, ValidMoves]) :-
+    initial_board(Board),
+    initial_valid_moves(ValidMoves),
+    Player = 'white'.
+/*
+Later change this so the user can choose the difficulty of the computer
+*/
+initial_state(['computer-computer', GameDifficulty], [Board, Player, 27, 27, ValidMoves]) :-
+    initial_board(Board),
+    initial_valid_moves(ValidMoves),
+    Player = 'white'.
+
 
 % display_game(GameState)
 display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
@@ -327,17 +351,33 @@ game_cycle(['player-player', GameDifficulty], [Board, Player, WhiteBlocks, Black
 /*
 GameMode = 'player-computer'
 Computer is always the white player -  Maybe allow player to choose
+GameMode = 'computer-player'
+Computer is first meaning he's the white player
 */
-game_cycle(['player-computer', GameDifficulty], [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
-    get_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move),
-    move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
-    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
-    game_cycle(['player-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 game_cycle(['player-computer', GameDifficulty], [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
-    choose_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
+    get_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move),
     move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
     game_cycle(['player-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+
+game_cycle(['player-computer', GameDifficulty], [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
+    move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['player-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+
+game_cycle(['computer-player', GameDifficulty], [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
+    move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['computer-player', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+
+game_cycle(['computer-player', GameDifficulty], [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    get_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move),
+    move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['computer-player', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+
 game_cycle(['computer-computer', GameDifficulty], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
     choose_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
     move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),

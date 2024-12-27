@@ -1,4 +1,3 @@
-:- [game].
 :-use_module(library(file_systems)).
 
 menu_path(main, Path):-         Path = './menus/main_menu.txt'. 
@@ -7,9 +6,6 @@ menu_path(human_bot, Path):-    Path = './menus/human_bot_menu.txt'.
 menu_path(bot_bot, Path):-      Path = './menus/bot_bot.txt'. 
 menu_path(size, Path):-         Path = './menus/board_size_menu.txt'.
 
-% Use current_directory(_, 'your_path_here') to set the path to the menus folder, so assets can be loaded
-play:-
-    main.
 
 % Displays the main menu
 main:- 
@@ -69,7 +65,7 @@ display_menu(Menu):-
     read_from_file(Path).
 
 % Changes the menu according to the given value
-change_menu(1, main):- size(human-human, main).
+change_menu(1, main):- size(['player-player',0], main).
 change_menu(2, main):- human_bot.
 change_menu(3, main):- bot_bot.
 change_menu(4, main):- instructions.
@@ -79,15 +75,18 @@ change_menu(5, main):- exit.
 change_menu(3, human_bot):- main.
 
 change_menu(Level-1, human_bot):-  
-    size(human-(computer-Level), human_bot).
+    size(['computer-player',Level], human_bot).
 
 change_menu(Level-2, human_bot):-  
-    size((computer-Level)-human, human_bot).
+    size(['player-computer',Level], human_bot).
 
 change_menu(3, bot_bot):- main.
 
+/*
+Later change this so user can choose the difficulty of the bot
+*/
 change_menu(Level1-Level2, bot_bot):-  
-    size((computer-Level1)-(computer-Level2), bot_bot).
+    size(['computer-computer', Level1, Level2], bot_bot).
 
 change_menu(_, instructions):- main.
 
@@ -97,7 +96,25 @@ start(_, 4, Back):- Back.
 start(Mode, Value, _):- 
     Size is Value + 3,
     game(Mode, Size),
+    prompt_restart_or_menu(Mode, Size).
+
+prompt_restart_or_menu(Mode, Size) :-
+    write('Do you want to play again or go back to the main menu?'), nl,
+    write('1. Play Again'), nl,
+    write('2. Go Back to Main Menu'), nl,
+    write('Enter your choice: '),
+    repeat,
+    read_digit_between(1, 2, Value),
+    read_specific_char('\n'),
+    handle_choice(Value, Mode, Size).
+
+handle_choice(1, Mode, Size) :-
+    game(Mode, Size),
+    prompt_restart_or_menu(Mode, Size).
+
+handle_choice(2, _, _) :-
     main.
+
 
 read_from_file(Path):-
     open(Path, read, Stream),

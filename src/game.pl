@@ -1,17 +1,23 @@
 :- use_module(library(lists)).
 :- use_module(library(between)).
 :- use_module(library(random)).
+:- use_module(library(system)).
 :- consult(board).
 :- consult(utils).
 :- consult(display).
 :- consult(value).
 
 game(Mode,Size):-
-    initial_state('TODO - GameConfig', GameState),
-    game_cycle('TODO - GameConfig', GameState, 'none').
+    initial_state(GameConfig, GameState),
+    game_cycle(GameConfig, GameState, 'none').
 
+/*
+GameConfig = [GameMode, GameDifficulty]
+GameMode => ['player-player', 'player-computer', 'computer-computer']
+GameDifficulty => [1, 2]
+*/
 % initial_state(GameConfig, GameState)
-initial_state(_, [Board, Player, 27, 27, ValidMoves]) :-
+initial_state(['player-computer', 2], [Board, Player, 27, 27, ValidMoves]) :-
     initial_board(Board),
     initial_valid_moves(ValidMoves),
     random_member(Player, ['white', 'black']).
@@ -261,6 +267,19 @@ choose_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], 1, [Row, Col,
     random(0, Length, Index),
     nth0(Index, ValidMoves, [Row, Col]),
     random(1, 3, Direction), 
+    sleep(0.2),
+    !.
+choose_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], 2, Move) :-
+    choose_move_aux([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], -100, [], [Row1, Col1, Direction1]),
+    put_block(Board, Row1, Col1, 'black', NewBoard, Direction1),
+    find_path(NewBoard, 'black', true),
+    choose_move_aux([Board, 'white', WhiteBlocks, BlackBlocks, [[Row1, Col1]]], -100, [], Move),
+    !.
+choose_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], 2, Move) :-
+    choose_move_aux([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], -100, [], [Row1, Col1, Direction1]),
+    put_block(Board, Row1, Col1, 'white', NewBoard, Direction1),
+    find_path(NewBoard, 'white', true),
+    choose_move_aux([Board, 'black', WhiteBlocks, BlackBlocks, [[Row1, Col1]]], -100, [], Move),
     !.
 choose_move(GameState, 2, Move) :-
     choose_move_aux(GameState, -100, [], Move),
@@ -271,7 +290,7 @@ choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], 
     value([NewBoard1, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Player, Value1),
     put_block(Board, Row, Col, Player, NewBoard2, 2),
     value([NewBoard2, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Player, Value2),
-    Value1 > Value2,
+    Value1 >= Value2,
     Value1 > Max,
     choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, Rest], Value1, [Row, Col, 1], BestMove),
     !.
@@ -300,11 +319,31 @@ game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'black') :-
     print_board(Board),
     print_winner_message('black'),
     !.
-game_cycle(GameConfig, [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+game_cycle(['player-player', GameDifficulty], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
     get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move),
     move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
-    game_cycle(GameConfig, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+    game_cycle(['player-player', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+/*
+GameMode = 'player-computer'
+Computer is always the white player -  Maybe allow player to choose
+*/
+game_cycle(['player-computer', GameDifficulty], [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    get_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move),
+    move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['player-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+game_cycle(['player-computer', GameDifficulty], [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
+    move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['player-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+game_cycle(['computer-computer', GameDifficulty], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
+    move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    display_game([NewBoard, Player, NewWhiteBlocks, NewBlackBlocks, ValidMoves]),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['computer-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
 get_move([_, _, _, _, []], []) :- !.
 get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move) :-

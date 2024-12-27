@@ -256,6 +256,37 @@ value([Board, _, _, _, _], 'black', Value) :-
     Value is BlackValue - WhiteValue.
 
 % choose_move(GameState, Level, Move)
+choose_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], 1, [Row, Col, Direction]) :-
+    length(ValidMoves, Length),
+    random(0, Length, Index),
+    nth0(Index, ValidMoves, [Row, Col]),
+    random(1, 3, Direction), 
+    !.
+choose_move(GameState, 2, Move) :-
+    choose_move_aux(GameState, -100, [], Move),
+    !.
+choose_move_aux([_, _, _, _, []], _, CurrentBestMove, CurrentBestMove) :- !.
+choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Max, CurrentBestMove, BestMove) :-
+    put_block(Board, Row, Col, Player, NewBoard1, 1),
+    value([NewBoard1, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Player, Value1),
+    put_block(Board, Row, Col, Player, NewBoard2, 2),
+    value([NewBoard2, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Player, Value2),
+    Value1 > Value2,
+    Value1 > Max,
+    choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, Rest], Value1, [Row, Col, 1], BestMove),
+    !.
+choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Max, CurrentBestMove, BestMove) :-
+    put_block(Board, Row, Col, Player, NewBoard1, 1),
+    value([NewBoard1, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Player, Value1),
+    put_block(Board, Row, Col, Player, NewBoard2, 2),
+    value([NewBoard2, Player, WhiteBlocks, BlackBlocks, [[Row, Col] |Rest]], Player, Value2),
+    Value2 > Value1,
+    Value2 > Max,
+    choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, Rest], Value2, [Row, Col, 2], BestMove),
+    !.
+choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, [[Row, Col] | Rest]], Max, CurrentBestMove, BestMove) :-
+    choose_move_aux([Board, Player, WhiteBlocks, BlackBlocks, Rest], Max, CurrentBestMove, BestMove),
+    !.
 
 game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'white') :- 
     clear_console,

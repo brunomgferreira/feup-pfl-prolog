@@ -8,19 +8,22 @@
 :- consult(value).
 :- consult(app).
 
-% Use current_directory(_, 'your_path_here') to set the path to the menus folder, so assets can be loaded
+% Add current_directory(_, 'your_path_here') to set the path to the menus folder, so assets can be loaded correctly
 play:-
     main.
 
+/*
+* GameConfig = [GameMode, GameDifficulty]
+* Size = (4,5,6) with 5 being the only available size for the game
+* GameMode => ['player-player', 'player-computer', 'computer-player']
+* GameDifficulty => [1, 2]
+* GameMode = 'computer-computer' => Bot1Difficulty = [1, 2], Bot2Difficulty = [1, 2]
+*/
 game(GameConfig,Size):-
     initial_state(GameConfig, GameState),
     game_cycle(GameConfig, GameState, 'none').
 
-/*
-GameConfig = [GameMode, GameDifficulty]
-GameMode => ['player-player', 'player-computer', 'computer-computer', 'computer-player']
-GameDifficulty => [1, 2]
-*/
+
 initial_state(['player-player', _], [Board, Player, 27, 27, ValidMoves]) :-
     initial_board(Board),
     initial_valid_moves(ValidMoves),
@@ -42,7 +45,13 @@ initial_state(['computer-computer', Computer1Difficulty, Computer2Difficulty], [
     Player = 'white'.
 
 
-% display_game(GameState)
+/*
+* Displays the current state of the game:
+* display_game(+GameState)
+* GameState: A list containing the current board, the current player, the remaining blocks for white and black, and the valid moves.
+* This function clears the console and then prints the game information, including the board, the current player's turn, 
+* the number of blocks each player has left, and the valid moves available.
+*/
 display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
     clear_console,
     print_header(WhiteBlocks, BlackBlocks),
@@ -50,7 +59,18 @@ display_game([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves]) :-
     print_player_turn(Player),
     print_valid_moves(ValidMoves).
 
-% move(GameState, Move, NewGameState)
+/*
+* Executes a move in the game, updating the game state:
+* move(+GameState, +Move, -NewGameState)
+* GameState: The current state of the game, including the board, current player, and other relevant details.
+* Move: The move to be executed, specified as [Row, Col, Direction].
+* NewGameState: The resulting game state after applying the move.
+* 
+* This predicate validates the move for the current player, places the block on the board, 
+* updates the remaining blocks, calculates valid moves for the next player, and switches turns.
+* If the move is invalid, the game state remains unchanged.
+*/
+
 move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Direction], NewGameState) :-
     member([Row, Col], ValidMoves),
     put_block(Board, Row, Col, 'white', NewBoard, Direction),
@@ -67,10 +87,28 @@ move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], [Row, Col, Directio
     !.
 move(GameState, _, GameState) :- !.
 
-% valid_moves(GameState, ListOfMoves)
+/*
+* Determines the list of valid moves for the current game state:
+* valid_moves(+GameState, -ListOfMoves)
+* GameState: The current state of the game, represented as a list containing the board and other game details.
+* ListOfMoves: The resulting list of valid moves for the current player.
+* 
+* The predicate computes all valid moves by iterating through the board and evaluating potential moves
+* based on specific conditions defined for each cell type.
+*/
 valid_moves([Board, _, _, _, _], ListOfMoves) :-
     valid_moves_aux(Board, Board, 10, [], ReversedListOfMoves),
     reverse(ReversedListOfMoves, ListOfMoves).
+
+/*
+* Auxiliary predicate to calculate valid moves for the entire board:
+* valid_moves_aux(AccumulatedMoves, -ListOfMoves)
+* OriginalBoard: The original game board (remains unchanged for context during recursion).
+* CurrentBoard: The portion of the board being processed (remaining rows).
+* Row: The current row being evaluated.
+* AccumulatedMoves: The list of moves accumulated so far.
+* ListOfMoves: The final list of valid moves for the entire board.
+*/
 
 valid_moves_aux(_, [],  _, AccumulatedMoves, AccumulatedMoves) :- !.
 valid_moves_aux(Board, [Line | Rest], Row, AccumulatedMoves, ListOfMoves) :-
@@ -183,7 +221,17 @@ valid_moves_row(Board, [[_, _] | Line], Row, Col, AccumulatedMoves, ListOfMoves)
     NewCol is Col + 1,
     valid_moves_row(Board, Line, Row, NewCol, AccumulatedMoves, ListOfMoves).
 
-% game_over(GameState, Winner)
+/*
+* Determines if the game is over and identifies the winner:
+* game_over(+GameState, -Winner)
+* GameState: The current state of the game, represented as a list containing the board and other game details.
+* Winner: The winner of the game, either 'white', 'black', or 'none' if the game is not over.
+* 
+* The predicate checks two conditions:
+* 1. If either player has achieved a winning path.
+* 2. If one of the players runs out of blocks.
+* If any of these conditions are met, the game ends, and the corresponding winner is determined.
+*/
 game_over([Board, _, _, _, _], 'white') :-
     find_path(Board, 'white', true),
     !.
@@ -193,6 +241,7 @@ game_over([Board, _, _, _, _], 'black') :-
 game_over([_, _, 0, _, _], 'black') :- !.
 game_over([_, _, _, 0, _], 'white') :- !.
 game_over(_, 'none').
+
 
 find_path(Board, 'white', true) :-
     between(0, 9, Start),  % Check from positions 0 to 9
@@ -339,16 +388,16 @@ game_cycle(_, [Board, _, WhiteBlocks, BlackBlocks, _], 'black') :-
     print_board(Board),
     print_winner_message('black'),
     !.
-game_cycle(['player-player', GameDifficulty], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+game_cycle(['player-player', _], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
     get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move),
     move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
-    game_cycle(['player-player', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+    game_cycle(['player-player', _], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 /*
-GameMode = 'player-computer'
-Computer is always the white player -  Maybe allow player to choose
-GameMode = 'computer-player'
-Computer is first meaning he's the white player
+* GameMode = 'player-computer'
+* Player starts first meaning he's the white player
+* GameMode = 'computer-player'
+* Computer is first meaning he's the white player
 */
 game_cycle(['player-computer', GameDifficulty], [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
     get_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move),

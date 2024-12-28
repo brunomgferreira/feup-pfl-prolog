@@ -17,9 +17,9 @@ menu_path(size, Path):-         Path = './menus/board_size_menu.txt'.
 main:- 
     display_menu(main),
     repeat,
-    read_digit_between(1,5,Value),
+    read_digit_between(1,5,Input),
     read_specific_char('\n'),
-    change_menu(Value, main).
+    change_menu(Input, main).
 
 
 % Displays the instructions
@@ -34,16 +34,16 @@ instructions:-
 human_bot:-
     display_menu(human_bot),
     repeat,
-    read_digit_between(1, 3, Value),
-    read_aux(Value, Res),
+    read_digit_between(1, 3, Input),
+    read_aux(Input, Res),
     change_menu(Res, human_bot).
 
 % Displays the computer vs computer menu
 bot_bot:-
     display_menu(bot_bot),
     repeat,
-    read_digit_between(1, 3, Value),
-    read_aux(Value, Res),
+    read_digit_between(1, 3, Input),
+    read_aux(Input, Res),
     change_menu(Res, bot_bot).
 
 /*
@@ -67,13 +67,13 @@ read_aux(V1, V1-V2):-
 size(Mode, Back):-
     display_menu(size),
     repeat,
-    read_digit_between(1, 4, Value),
+    read_digit_between(1, 4, Input),
     read_specific_char('\n'),
     (
-        Value == 4; 
-        Value == 2
+        Input == 4; 
+        Input == 2
     ) ->
-    start(Mode, Value, Back);
+    start(Mode, Input, Back);
     writeln('Invalid value. Please enter 4 or 2.'), 
     fail.
 
@@ -94,8 +94,8 @@ display_menu(Menu):-
 
 /*
 * Changes the menu according to the given value:
-* change_menu(+Value, +CurrentMenu)
-* Value: The user's input that determines which menu to display next (e.g., 1-5 for main menu, Level-1 or Level-2 for other game modes).
+* change_menu(+Input, +CurrentMenu)
+* Input: The user's input that determines which menu to display next (e.g., 1-5 for main menu, Level-1 or Level-2 for other game modes).
 * CurrentMenu: The current menu being displayed (e.g., main, human_bot, bot_bot, instructions).
 * Based on the value entered, the appropriate action is taken, either changing to another menu or performing an action related to game mode selection.
 */
@@ -123,19 +123,19 @@ change_menu(_, instructions):- main.
 
 /*
 * Starts the game with the given mode and size:
-* start(+Mode, +Value, +Back)
+* start(+Mode, +Input, +Back)
 * Mode: The current game mode (e.g., player-player, computer-player).
-* Value: The chosen option of the user. 
+* Input: The chosen option of the user. 
 * Size: Board size, currently 5x5 is the only one that works.
 * Back: Information used to navigate back to the previous menu, which is not used in this case.
 * The game is started with the given mode and size. If the option selected is 4, the process returns to the previous state (Back).
 */
 start(_, 4, Back):- Back.
 
-start(Mode, Value, _):- 
-    Size is Value + 3,
-    game(Mode, Size),
-    prompt_restart_or_menu(Mode, Size).
+start(GameMode, Input, _):- 
+    Size is Input + 3,
+    game(GameMode, Size),
+    prompt_restart_or_menu(GameMode, Size).
 
 /*
 * Prompts the user to choose whether to play again or go back to the main menu:
@@ -144,15 +144,15 @@ start(Mode, Value, _):-
 * Size: The current game board size.
 * Displays options to the user to either play the game again or return to the main menu. Based on the user's input (1 or 2), the appropriate action is taken by calling the `handle_choice/3` predicate.
 */
-prompt_restart_or_menu(Mode, Size) :-
+prompt_restart_or_menu(GameMode, Size) :-
     write('Do you want to play again or go back to the main menu?'), nl,
     write('1. Play Again'), nl,
     write('2. Go Back to Main Menu'), nl,
     write('Enter your choice: '),
     repeat,
-    read_digit_between(1, 2, Value),
+    read_digit_between(1, 2, Input),
     read_specific_char('\n'),
-    handle_choice(Value, Mode, Size).
+    handle_choice(Input, GameMode, Size).
 
 
 /*
@@ -165,9 +165,9 @@ prompt_restart_or_menu(Mode, Size) :-
 * - If Choice is 1, the game is restarted with the same mode and size, and the user is prompted again.
 * - If Choice is 2, the program returns to the main menu.
 */
-handle_choice(1, Mode, Size) :-
-    game(Mode, Size),
-    prompt_restart_or_menu(Mode, Size).
+handle_choice(1, GameMode, Size) :-
+    game(GameMode, Size),
+    prompt_restart_or_menu(GameMode, Size).
 
 handle_choice(2, _, _) :-
     main.

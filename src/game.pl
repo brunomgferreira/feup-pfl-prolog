@@ -14,16 +14,14 @@ play:-
 
 game(GameConfig,Size):-
     initial_state(GameConfig, GameState),
-    game_cycle(GameConfig, GameState, 'none'),
-    write('Current Mode'),write(GameConfig), nl,
-    write('Current Size'),write(Size), nl.
+    game_cycle(GameConfig, GameState, 'none').
 
 /*
 GameConfig = [GameMode, GameDifficulty]
 GameMode => ['player-player', 'player-computer', 'computer-computer', 'computer-player']
 GameDifficulty => [1, 2]
 */
-initial_state(['player-player', 0], [Board, Player, 27, 27, ValidMoves]) :-
+initial_state(['player-player', _], [Board, Player, 27, 27, ValidMoves]) :-
     initial_board(Board),
     initial_valid_moves(ValidMoves),
     Player = 'white'.
@@ -37,10 +35,8 @@ initial_state(['computer-player', GameDifficulty], [Board, Player, 27, 27, Valid
     initial_board(Board),
     initial_valid_moves(ValidMoves),
     Player = 'white'.
-/*
-Later change this so the user can choose the difficulty of the computer
-*/
-initial_state(['computer-computer', GameDifficulty], [Board, Player, 27, 27, ValidMoves]) :-
+
+initial_state(['computer-computer', Computer1Difficulty, Computer2Difficulty], [Board, Player, 27, 27, ValidMoves]) :-
     initial_board(Board),
     initial_valid_moves(ValidMoves),
     Player = 'white'.
@@ -378,12 +374,23 @@ game_cycle(['computer-player', GameDifficulty], [Board, 'black', WhiteBlocks, Bl
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
     game_cycle(['computer-player', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
-game_cycle(['computer-computer', GameDifficulty], [Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], _) :-
-    choose_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], GameDifficulty, Move),
-    move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
-    display_game([NewBoard, Player, NewWhiteBlocks, NewBlackBlocks, ValidMoves]),
+% Added sleep to make the game more understandable
+game_cycle(['computer-computer', Computer1Difficulty, Computer2Difficulty], [Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Computer1Difficulty, Move),
+    move([Board, 'white', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    display_game([NewBoard, 'white', NewWhiteBlocks, NewBlackBlocks, ValidMoves]),
+    sleep(0.8),
     game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
-    game_cycle(['computer-computer', GameDifficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+    game_cycle(['computer-computer', Computer1Difficulty, Computer2Difficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
+
+% Added sleep to make the game more understandable
+game_cycle(['computer-computer', Computer1Difficulty, Computer2Difficulty], [Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], _) :-
+    choose_move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Computer2Difficulty, Move),
+    move([Board, 'black', WhiteBlocks, BlackBlocks, ValidMoves], Move, [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves]),
+    display_game([NewBoard, 'black', NewWhiteBlocks, NewBlackBlocks, ValidMoves]),
+    sleep(0.8),
+    game_over([NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner),
+    game_cycle(['computer-computer', Computer1Difficulty, Computer2Difficulty], [NewBoard, NewPlayer, NewWhiteBlocks, NewBlackBlocks, NewValidMoves], Winner).
 
 get_move([_, _, _, _, []], []) :- !.
 get_move([Board, Player, WhiteBlocks, BlackBlocks, ValidMoves], Move) :-

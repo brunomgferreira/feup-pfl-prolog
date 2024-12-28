@@ -3,7 +3,7 @@
 menu_path(main, Path):-         Path = './menus/main_menu.txt'. 
 menu_path(instructions, Path):- Path = './menus/instructions.txt'. 
 menu_path(human_bot, Path):-    Path = './menus/human_bot_menu.txt'. 
-menu_path(bot_bot, Path):-      Path = './menus/bot_bot.txt'. 
+menu_path(bot_bot, Path):-      Path = './menus/computer_computer.txt'. 
 menu_path(size, Path):-         Path = './menus/board_size_menu.txt'.
 
 
@@ -47,13 +47,19 @@ read_aux(V1, V1-V2):-
     read_digit_between(1, 2, V2),
     read_specific_char('\n').
 
-% Displays the size menu
+% Displays the size menu (4x4 and 6x6 are currently disabled) 
 size(Mode, Back):-
     display_menu(size),
     repeat,
     read_digit_between(1, 4, Value),
     read_specific_char('\n'),
-    start(Mode, Value, Back).
+    (
+        Value == 4; 
+        Value == 2
+    ) ->
+    start(Mode, Value, Back);
+    writeln('Invalid value. Please enter 4 or 2.'), 
+    fail.
 
 exit:- clear_console.
 
@@ -82,9 +88,7 @@ change_menu(Level-2, human_bot):-
 
 change_menu(3, bot_bot):- main.
 
-/*
-Later change this so user can choose the difficulty of the bot
-*/
+
 change_menu(Level1-Level2, bot_bot):-  
     size(['computer-computer', Level1, Level2], bot_bot).
 

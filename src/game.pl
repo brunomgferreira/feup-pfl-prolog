@@ -8,8 +8,9 @@
 :- consult(value).
 :- consult(app).
 
-% Add current_directory(_, 'your_path_here') to set the path to the menus folder, so assets can be loaded correctly
+% If having problems with assets loading, just add current_directory(_, 'your_absolute_path_here') to set the path to the menus folder.
 play:-
+    current_directory(_, './src'),
     main.
 
 /*
